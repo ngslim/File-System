@@ -2,27 +2,27 @@
 
 int main()
 {
-	/*while (true)
+	while (true)
 	{
 		mainMenu();
-	}*/
+	}
 
-	Volume test;
-	//test.create("MyFS.DAT", 5*1024*1024/512, 512, 2);
-	test.open("MyFS.DAT");
+	//Volume test;
+	////test.create("MyFS.DAT", 5*1024*1024/512, 512, 2);
+	//test.open("MyFS.DAT");
 
-	//test.importFile("Recording.m4a");
-	test.importFile("test.txt");
+	////test.importFile("Recording.m4a");
+	////test.importFile("test.txt");
 
-	test.loadDirectory();
+	//test.loadDirectory();
 
-	test.printFileList();
+	//test.printFileList();
 
-	test.exportFile(0);
+	//test.exportFile(0);
 
-	//system("pause");
+	////system("pause");
 
-	//test.exportFile(1);
+	////test.exportFile(1);
 	
 	return 0;
 }

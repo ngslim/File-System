@@ -7,6 +7,11 @@ unsigned int nameLength = 10;
 unsigned int extensionLength = 5;
 unsigned int passwordLength = 16;
 
+int Volume::getListSize()
+{
+	return fileList.size();
+}
+
 Volume::Volume()
 {
 	version = 1;
@@ -39,7 +44,7 @@ bool Volume::create(const char* path, unsigned int volumeSize, unsigned short by
 		return false;
 	}
 
-	vol.write(name.c_str(), sizeOfName);
+	vol.write(name.c_str(), VOLUME_NAME_SIZE);
 	vol.write((char*)&version, sizeof(version));
 	vol.write((char*)&volumeSize, sizeof(volumeSize));
 	vol.write((char*)&bytePerSector, sizeof(bytePerSector));
@@ -51,7 +56,7 @@ bool Volume::create(const char* path, unsigned int volumeSize, unsigned short by
 	vol.write((char*)&clusterOfPET, sizeof(clusterOfPET));
 
 	password = "";
-	vol.write(password.c_str(), sizeOfPassword);
+	vol.write(password.c_str(), VOLUME_PASSWORD_SIZE);
 	
 	char c = 0;
 	for (int i = 0; i < bytePerSector * sectorInBootSector - getSizeOfBootSector(); i++)
@@ -77,9 +82,9 @@ bool Volume::open(const char* path)
 		return false;
 	}
 
-	char* temp = new char[sizeOfName + 1];
-	vol.read(temp, sizeOfName);
-	temp[sizeOfName] = '\0';
+	char* temp = new char[VOLUME_NAME_SIZE + 1];
+	vol.read(temp, VOLUME_NAME_SIZE);
+	temp[VOLUME_NAME_SIZE] = '\0';
 	name.assign(temp, strlen(temp));
 
 	delete[] temp;
@@ -94,9 +99,9 @@ bool Volume::open(const char* path)
 	vol.read((char*)&clusterOfRDET, sizeof(clusterOfRDET));
 	vol.read((char*)&clusterOfPET, sizeof(clusterOfPET));
 
-	temp = new char[sizeOfPassword + 1];
-	vol.read(temp, sizeOfPassword);
-	temp[sizeOfPassword] = '\0';
+	temp = new char[VOLUME_PASSWORD_SIZE + 1];
+	vol.read(temp, VOLUME_PASSWORD_SIZE);
+	temp[VOLUME_PASSWORD_SIZE] = '\0';
 	password.assign(temp, strlen(temp));
 
 	delete[] temp;
@@ -117,9 +122,9 @@ void Volume::format()
 
 	char c = 0;
 	 
-	vol.seekp(getSizeOfBootSector() - sizeOfPassword);
+	vol.seekp(getSizeOfBootSector() - VOLUME_PASSWORD_SIZE);
 
-	for (int i = 0; i < bytePerSector * sectorInBootSector - getSizeOfBootSector() - sizeOfPassword; i++)
+	for (int i = 0; i < bytePerSector * sectorInBootSector - getSizeOfBootSector() - VOLUME_PASSWORD_SIZE; i++)
 		vol.write(&c, sizeof(c));
 	for (int i = 0; i < (volumeSize - sectorInBootSector) * bytePerSector; i++)
 		vol.write(&c, sizeof(c));
@@ -127,6 +132,11 @@ void Volume::format()
 	vol.close();
 
 	setReservedCluster();
+}
+
+string Volume::getName()
+{
+	return name;
 }
 
 bool Volume::loadDirectory()
@@ -192,11 +202,11 @@ bool Volume::loadDirectory()
 
 void Volume::printFileList()
 {
-	cout << "-- ROOT DIRECTORY --" << endl << endl;
+	cout << "Index\tName\t\t\tSize" << endl << endl;
 
 	for (int i = 0; i < fileList.size(); i++)
 	{
-		cout << i << '\t' << "Entry: "<< fileList[i].getEntry() << '\t' << fileList[i].getName() << '.' << fileList[i].getExtension() << '\t' << fileList[i].getSize() << endl;
+		cout << i + 1 << ".\t" << fileList[i].getName() << '.' << fileList[i].getExtension() << "\t\t" << fileList[i].getSize() << endl;
 	}
 }
 
@@ -418,7 +428,7 @@ string Volume::getPasswordFromPET(unsigned short entry)
 	return password;
 }
 
-bool Volume::editPassword(unsigned short entry, string password)
+bool Volume::editFilePassword(int fileIndex, string password)
 {
 	vector<unsigned short> freePETEntry = getFreePETEntry();
 
@@ -427,6 +437,7 @@ bool Volume::editPassword(unsigned short entry, string password)
 	if (vol.fail())
 		return false;
 
+	unsigned short entry = fileList[fileIndex].getEntry();
 	unsigned short passwordEntry;
 	unsigned short currentPasswordEntry;
 
@@ -519,6 +530,16 @@ char* Volume::readCluster(unsigned int index)
 	return data;
 }
 
+string Volume::getFileName(int fileIndex)
+{
+	return fileList[fileIndex].getName() + "." + fileList[fileIndex].getExtension();
+}
+
+string Volume::getFilePassword(int fileIndex)
+{
+	return getPasswordFromPET(fileList[fileIndex].getPasswordEntry());
+}
+
 string Volume::getPassword()
 {
 	return password;
@@ -535,9 +556,8 @@ void Volume::changePassword(string newPassword)
 
 	password = newPassword;
 
-	vol.seekp(getSizeOfBootSector() - sizeOfPassword, ios::beg);
-	vol.write(password.c_str(), sizeOfPassword);
-	cout << "Password changed to " << password << endl;
+	vol.seekp(getSizeOfBootSector() - VOLUME_PASSWORD_SIZE, ios::beg);
+	vol.write(password.c_str(), VOLUME_PASSWORD_SIZE);
 	vol.close();
 }
 
@@ -688,6 +708,6 @@ bool Volume::deleteFile(int fileIndex)
 
 int Volume::getSizeOfBootSector()
 {
-	return sizeOfName + sizeof(version) + sizeof(volumeSize) + sizeof(bytePerSector) + sizeof(sectorPerCluster) + sizeof(sectorInBootSector) + sizeof(numFAT) + sizeof(FATSize) + sizeof(clusterOfRDET) + sizeof(clusterOfPET) + sizeOfPassword;
+	return VOLUME_NAME_SIZE + sizeof(version) + sizeof(volumeSize) + sizeof(bytePerSector) + sizeof(sectorPerCluster) + sizeof(sectorInBootSector) + sizeof(numFAT) + sizeof(FATSize) + sizeof(clusterOfRDET) + sizeof(clusterOfPET) + VOLUME_PASSWORD_SIZE;
 }
 

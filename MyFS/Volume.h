@@ -8,14 +8,14 @@
 #define DIRECTORY_ENTRY_SIZE 32
 #define PASSWORD_ENTRY_SIZE 16
 
+#define VOLUME_NAME_SIZE 14
+#define VOLUME_PASSWORD_SIZE 24
+
 using namespace std;
 
 class Volume
 {
 private:
-	int sizeOfName = 14; //fixed name size
-	int sizeOfPassword = 24; //fixed password length
-
 	string name;
 
 	string password;
@@ -43,8 +43,12 @@ public:
 	
 	void format();
 
+	string getName();
+
 	string getPassword();
 	void changePassword(string newPassword);
+
+	int getListSize();
 
 	bool loadDirectory();
 	void printFileList();
@@ -60,12 +64,16 @@ public:
 
 	bool setEntryToRDET(unsigned short entry, File file);
 	bool deleteEntryInRDET(unsigned short entry);
-	bool editPassword(unsigned short entry, string password);
 
 	string getPasswordFromPET(unsigned short entry);
 
 	bool writeCluster(unsigned int index, const char* data, unsigned int length);
 	char* readCluster(unsigned int index);
+
+	string getFileName(int fileIndex);
+	string getFilePassword(int fileIndex);
+
+	bool editFilePassword(int fileIndex, string password);
 
 	bool importFile(const char* path);
 	bool exportFile(int fileIndex);
