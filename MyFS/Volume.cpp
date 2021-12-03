@@ -202,11 +202,11 @@ bool Volume::loadDirectory()
 
 void Volume::printFileList()
 {
-	cout << "Index\tName\t\t\tSize" << endl << endl;
+	cout << "Index\tName - Size (bytes)" << endl << endl;
 
 	for (int i = 0; i < fileList.size(); i++)
 	{
-		cout << i + 1 << ".\t" << fileList[i].getName() << '.' << fileList[i].getExtension() << "\t\t" << fileList[i].getSize() << endl;
+		cout << i + 1 << ".\t" << fileList[i].getName() << '.' << fileList[i].getExtension() << " - " << fileList[i].getSize() << endl;
 	}
 }
 
@@ -575,9 +575,12 @@ bool Volume::importFile(const char* path)
 
 	int pathSeparator = pathString.find_last_of("/\\");
 
-	string fileName = pathString.substr(0, pathSeparator);
+	string fileName = pathString.substr(pathSeparator + 1, pathString.length());
 
 	int extensionSeparator = fileName.find_last_of(".");
+
+	cout << fileName << endl;
+
 
 	string name = fileName.substr(0, extensionSeparator);
 	string extension = fileName.substr(extensionSeparator + 1);
