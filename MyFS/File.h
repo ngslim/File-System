@@ -27,6 +27,4 @@ public:
 	unsigned int getSize();
 	unsigned int getStartCluster();
 	unsigned short getPasswordEntry();
-	
-	void changePassword(string newPassword);
 };
